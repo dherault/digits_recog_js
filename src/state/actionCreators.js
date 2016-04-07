@@ -1,0 +1,30 @@
+import isPlainObject from 'lodash.isplainobject';
+import { logAction } from '../logger';
+
+// An action creator takes a plain object as input (params) 
+// and outputs a redux-style action ({ params, type });
+
+
+/* Utilities */
+
+// Reduces boilerplate, ensures logging and validates params
+function createSyncActionCreator(intention) {
+  const type = createTypeFromIntention(intention);
+  
+  return params => {
+    logAction(intention, params);
+    validateParams(params);
+    
+    return { type, params };
+  };
+}
+
+// doSomeStuff --> DO_SOME_STUFF
+// An action has one intention (camel-cased), but can have multiple types (caps, _-separated)
+function createTypeFromIntention(intention, prefix) {
+  return `${prefix ? prefix + '_' :  ''}${intention.replace(/[A-Z]/g, '_$&')}`.toUpperCase();
+}
+
+function validateParams(params) {
+  if (!isPlainObject(params)) throw new Error('In action: params must be a plain object!');
+}

@@ -1,0 +1,42 @@
+@import "./normalize.css";
+
+body {
+  font-family: 'Roboto', sans-serif;
+  color: #222;
+}
+
+.app_wrapper {
+  width: 80%;
+  margin: auto;
+  display: flex;
+  min-height: 100vh;
+  flex-direction: column;
+}
+
+@media (max-width: 800px) {
+  .app_wrapper {
+    width: 95%;
+  }
+}
+
+.app_content {
+  flex: 1;
+}
+
+footer {
+  text-align: center;
+  margin: 2rem auto 1rem auto;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.footer_github {
+  margin: auto 0.5rem auto 0.5rem;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+.footer_github_img {
+  width: 24px;
+}
