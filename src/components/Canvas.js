@@ -70,6 +70,8 @@ export default class Canvas extends React.Component{
   }
   
   handlePixelClick(x, y) {
+    if (this.props.input) return;
+    
     const key = `${x}_${y}`;
     const neighbors = this.state.neighbors[key];
     const newState = {
@@ -87,7 +89,7 @@ export default class Canvas extends React.Component{
     if (this.state.mouseDown) this.handlePixelClick(x, y);
   }
   
-  handleReset() {
+  resetState() {
     const newState = {};
     for (let x = 0; x < canvasSize; x++) {
       for (let y = 0; y < canvasSize; y++) {
@@ -98,19 +100,26 @@ export default class Canvas extends React.Component{
     this.setState(newState);
   }
   
-  handleGo() {
+  getStateData() {
     const data = [];
     for (let x = 0; x < canvasSize; x++) {
       for (let y = 0; y < canvasSize; y++) {
         data.push(this.state[`${x}_${y}`]);
       }
     }
-    this.props.goAction(data);
-    if (this.props.clearOnGo) this.handleReset();
+    
+    return data;
+  }
+  
+  handleButton(side) {
+    const { action, shouldPassInputToAction, shouldReset } = this.props[side];
+    if (typeof action === 'function') action(shouldPassInputToAction ? this.getStateData() : undefined);
+    if (shouldReset) this.resetState();
   }
   
   render() {
-    const pixelsRows = [];
+    
+    const { leftButton, rightButton, input } = this.props;
     
     const s_main = {
       display: 'flex',
@@ -144,33 +153,33 @@ export default class Canvas extends React.Component{
       justifyContent: 'center',
     };
     
+    const pixelsRows = [];
     for (let x = 0; x < canvasSize; x++) {
       const pixels = [];
       
       for (let y = 0; y < canvasSize; y++) {
         
         pixels.push(<Pixel 
-          key = {y}
-          intensity = {this.state[`${x}_${y}`]}
-          onClick = {this.handlePixelClick.bind(this, x, y)}
-          onHover = {this.handlePixelHover.bind(this, x, y)}
+          key={y}
+          intensity={input ? input[x * canvasSize + y] : this.state[`${x}_${y}`]}
+          onClick={this.handlePixelClick.bind(this, x, y)}
+          onHover={this.handlePixelHover.bind(this, x, y)}
         />);
       }
       
       pixelsRows.push(<div key={x} style={s_row}>{ pixels }</div>);
     }
     
-    return <div style={s_main}
-      onMouseUp={this.handleClick.bind(this, false)}
-      onMouseDown={this.handleClick.bind(this, true)}
-    >
+    return <div style={s_main} onMouseUp={this.handleClick.bind(this, false)} onMouseDown={this.handleClick.bind(this, true)}>
+      
       <div style={s_canvas}  children={pixelsRows} />
+      
       <div style={s_buttons}>
-        <div className='button -red -rounded -canvas' onClick={this.handleReset.bind(this)}>
-          <span>Reset</span>
+        <div className={'button -rounded -canvas -' + leftButton.color} onClick={this.handleButton.bind(this, 'leftButton')}>
+          <span>{ leftButton.caption }</span>
         </div>
-        <div className='button -blue -rounded -canvas' onClick={this.handleGo.bind(this)}>
-          <span>{ this.props.rightButtonCaption || 'Go!' }</span>
+        <div className={'button -rounded -canvas -' + rightButton.color} onClick={this.handleButton.bind(this, 'rightButton')}>
+          <span>{ rightButton.caption }</span>
         </div>
       </div>
     </div>;

@@ -1,7 +1,7 @@
 import React from 'react';
 import config from '../config';
 
-export default class DataViewer extends React.Component{
+export default class ExamplesViewer extends React.Component{
   
   constructor() {
     super();
@@ -17,11 +17,17 @@ export default class DataViewer extends React.Component{
     });
   }
   
+  componentDidUpdate(prevProps) {
+    if (prevProps.examples.length !== this.props.examples.length) {
+      const node = this.refs.scrollable;
+      node.scrollTop = node.scrollHeight;
+    }
+  }
+  
   render() {
     
     const json = this.state.json;
-    const data = this.props.data;
-    const l = data.length;
+    const examples = this.props.examples;
     
     const s_outter = {
       backgroundColor: '#eee',
@@ -32,7 +38,7 @@ export default class DataViewer extends React.Component{
     };
     
     const s_inner = {
-      margin: '0.5rem',
+      margin: '8px', // no rem? for scroll computation
     };
     
     const s_buttons = {
@@ -44,14 +50,14 @@ export default class DataViewer extends React.Component{
     };
     
     return <div>
-      <div style={s_outter}>
+      <div style={s_outter} ref='scrollable'>
         <div style={s_inner}>
         {
-          l ? json ?
-          data.map(x => <div>{ JSON.stringify(x) + ',' }</div>).concat([<div>-</div>]) :
+          examples.length ? json ?
+          examples.map((x, i) => <div key={i}>{ JSON.stringify(x) + ',' }</div>).concat([<div>-</div>]) :
           
-          data.map(({ input, output }, i) => <div>
-            <strong>{ l - i }</strong>
+          examples.map(({ input, output }, i) => <div key={i}>
+            <strong>{ i + 1}</strong>
             <div>Output: { output }</div>
             <div>{ `Input: ${JSON.stringify(input)}` }</div>
           </div>) :
@@ -64,7 +70,7 @@ export default class DataViewer extends React.Component{
         </div>
       </div>
       <div style={s_buttons}>
-        <div className='button -red -rounded -canvas' onClick={this.props.clearData}>
+        <div className='button -red -rounded -canvas' onClick={this.props.clearExamples}>
           <span>Clear all</span>
         </div>
         <div className='button -blue -rounded -canvas' onClick={this.handleJson.bind(this)}>

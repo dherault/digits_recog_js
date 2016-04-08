@@ -5,8 +5,9 @@ import { logAction } from '../logger';
 // and outputs a redux-style action ({ params, type });
 
 export const setMode = createSyncActionCreator('setMode');
-export const addData = createSyncActionCreator('addData');
-export const clearData = createSyncActionCreator('clearData');
+export const addExample = createSyncActionCreator('addExample');
+export const clearExamples = createSyncActionCreator('clearExamples');
+export const removeExample = createSyncActionCreator('removeExample');
 
 
 /* Utilities */

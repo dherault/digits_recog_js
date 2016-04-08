@@ -12,12 +12,15 @@ export default {
     }
   },
   
-  data: (state=[], action) => {
+  examples: (state=[], action) => {
     switch (action.type) {
-      case 'ADD_DATA':
-        return [action.params, ...state];
+      case 'ADD_EXAMPLE':
+        return [...state, action.params];
         
-      case 'CLEAR_DATA':
+      case 'REMOVE_EXAMPLE':
+        return [...state.slice(0, action.params.index), ...state.slice(action.params.index + 1, state.length)];
+        
+      case 'CLEAR_EXAMPLES':
         return [];
       
       default:

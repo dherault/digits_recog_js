@@ -71,17 +71,17 @@ footer {
   color: #fff;
   font-weight: 500;
   text-transform: none;
-  transition: all 60ms ease-in-out;
+  transition: width 60ms ease-in-out;
   user-select: none;
 }
 .button:hover {
   opacity: .95;
-  transition: all 60ms ease;
+  transition: width 60ms ease;
 }
 .button:active {
   opacity: .75;
   transform: scale(0.97);
-  transition: all 60ms ease;
+  transition: width 60ms ease;
 }
 
 .button.-rounded {
@@ -90,12 +90,10 @@ footer {
 
 .button.-blue {
   background: #2b90d9;
-  color: #FFFFFF;
 }
 
 .button.-red {
   background: #ff7473;
-  color: #FFFFFF;
 }
 
 .button.-canvas {
