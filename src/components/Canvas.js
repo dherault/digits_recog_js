@@ -1,4 +1,5 @@
 import React from 'react';
+import PureRenderMixin from 'react-addons-pure-render-mixin';
 import config from '../config';
 
 const { canvasSize } = config;
@@ -21,22 +22,55 @@ const mapRelativeIntensityToColor = [
   '#000',
 ];
 
+// const promises = [];
+// let stateSetter;
+
+// function setStateSetter(cb) {
+//   promiser = () => {
+    
+//   }
+// }
+
 export default class Canvas extends React.Component{
   
   constructor() {
     super();
+    this.shouldComponentUpdate = PureRenderMixin.shouldComponentUpdate.bind(this);
     this.state = {
       mouseDown: false,
-      erase: false,
     };
     
-    // Pixel state: [white/black, not_hovered/hovered]
+    const neighbors = {};
+    const z = canvasSize - 1;
+    
+    // Pixel state === intensity
     // a matrix-based (array of arrays) state is too costly, we use a map
     for (let x = 0; x < canvasSize; x++) {
       for (let y = 0; y < canvasSize; y++) {
-        this.state[`${x}_${y}`] = 0;
+        
+        const key = `${x}_${y}`;
+        const x0 = x > 0;
+        const y0 = y > 0;
+        const xz = x < z;
+        const yz = y < z;
+        const localNeighbors = {};
+        
+        // Antialiasing gradients
+        if (x0) localNeighbors[`${x - 1}_${y}`] = 64; // top
+        if (yz) localNeighbors[`${x}_${y + 1}`] = 64; // right
+        if (xz) localNeighbors[`${x + 1}_${y}`] = 64; // bottom
+        if (y0) localNeighbors[`${x}_${y - 1}`] = 64; // left
+        if (x0 && yz) localNeighbors[`${x - 1}_${y + 1}`] = 32; // top-right
+        if (xz && yz) localNeighbors[`${x + 1}_${y + 1}`] = 32; // bottom-right
+        if (xz && y0) localNeighbors[`${x + 1}_${y - 1}`] = 32; // bottom-left
+        if (x0 && y0) localNeighbors[`${x - 1}_${y - 1}`] = 32; // top-left
+        
+        neighbors[key] = localNeighbors;
+        this.state[`${x}_${y}`] = 0; // White at start
       }
     }
+    
+    this.state.neighbors = neighbors;
   }
   
   handleClick(mouseDown) {
@@ -46,42 +80,20 @@ export default class Canvas extends React.Component{
   handlePixelClick(x, y) {
     
     const key = `${x}_${y}`;
-    const { erase } = this.state;
+    const neighbors = this.state.neighbors[key];
+    const newState = {
+      [key]: 255
+    };
     
-    const z = canvasSize - 1;
-    const x0 = x > 0;
-    const y0 = y > 0;
-    const xz = x < z;
-    const yz = y < z;
+    for (let k in neighbors) {
+      newState[k] = Math.min(255, this.state[k] + neighbors[k]);
+    }
     
-    const nearNeighbors = [
-      x0 ? `${x - 1}_${y}` : undefined, // top
-      yz ? `${x}_${y + 1}` : undefined, // right
-      xz ? `${x + 1}_${y}` : undefined, // bottom
-      y0 ? `${x}_${y - 1}` : undefined, // left
-    ].filter(item => item)
-    .map(key => ({
-      [key]: cap(this.state[key] + (erase ? -1 : 1) * 255 / 3)
-    }));
-    
-    const farNeighbors = [
-      x0 && yz ? `${x - 1}_${y + 1}` : undefined, // top-right
-      xz && yz ? `${x + 1}_${y + 1}` : undefined, // bottom-right
-      xz && y0 ? `${x + 1}_${y - 1}` : undefined, // bottom-left
-      x0 && y0 ? `${x - 1}_${y - 1}` : undefined, // top-left
-    ].filter(item => item)
-    .map(key => ({
-      [key]: cap(this.state[key] + (erase ? -1 : 1) * 255 / 6)
-    }));
-    
-    this.setState(Object.assign({
-      [key]: erase ? 0 : 255
-    }, ...nearNeighbors.concat(farNeighbors)));
+    this.setState(newState);
   }
   
   handlePixelHover(x, y) {
-    if (!this.state.mouseDown) return;
-    this.handlePixelClick(x, y);
+    if (this.state.mouseDown) this.handlePixelClick(x, y);
   }
   
   handleReset() {
@@ -96,7 +108,6 @@ export default class Canvas extends React.Component{
   }
   
   render() {
-    
     const pixelsRows = [];
     
     const s_main = {
@@ -127,7 +138,7 @@ export default class Canvas extends React.Component{
       marginTop: '1rem',
       display: 'flex',
       flexDirection: 'row',
-      width: '100%',
+      width: canvasSize + 'rem',
       justifyContent: 'center',
     };
     
@@ -147,11 +158,13 @@ export default class Canvas extends React.Component{
       pixelsRows.push(<div key={x} style={s_row}>{ pixels }</div>);
     }
     
-    return <div style={s_main}>
+    return <div 
+      style={s_main}
+      onMouseDown = {this.handleClick.bind(this, true)}
+      onMouseUp = {this.handleClick.bind(this, false)}
+    >
       <div 
         style = {s_canvas} 
-        onMouseDown = {this.handleClick.bind(this, true)}
-        onMouseUp = {this.handleClick.bind(this, false)}
         children = {pixelsRows}
       />
       <div style = {s_buttons}>
@@ -177,7 +190,7 @@ class Pixel extends React.Component {
   
   constructor() {
     super();
-    
+    this.shouldComponentUpdate = PureRenderMixin.shouldComponentUpdate.bind(this);
     this.state = {
       hovered: false
     };
@@ -185,7 +198,7 @@ class Pixel extends React.Component {
   
   handleHover(hovered) {
     this.setState({ hovered });
-    this.props.onHover();
+    if (hovered) this.props.onHover();
   }
   
   render() {
@@ -207,8 +220,4 @@ class Pixel extends React.Component {
       onMouseDown  = {this.props.onClick}
     />;
   }
-}
-
-function cap(n) {
-  return Math.min(255, Math.max(n, 0));
 }

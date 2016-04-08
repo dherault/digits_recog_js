@@ -1,3 +1,3 @@
 export default {
-  canvasSize: 32,
+  canvasSize: 24,
 };
