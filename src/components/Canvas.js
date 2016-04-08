@@ -22,19 +22,11 @@ const mapRelativeIntensityToColor = [
   '#000',
 ];
 
-// const promises = [];
-// let stateSetter;
-
-// function setStateSetter(cb) {
-//   promiser = () => {
-    
-//   }
-// }
-
 export default class Canvas extends React.Component{
   
   constructor() {
     super();
+    
     this.shouldComponentUpdate = PureRenderMixin.shouldComponentUpdate.bind(this);
     this.state = {
       mouseDown: false,
@@ -78,7 +70,6 @@ export default class Canvas extends React.Component{
   }
   
   handlePixelClick(x, y) {
-    
     const key = `${x}_${y}`;
     const neighbors = this.state.neighbors[key];
     const newState = {
@@ -105,6 +96,17 @@ export default class Canvas extends React.Component{
     }
     
     this.setState(newState);
+  }
+  
+  handleGo() {
+    const data = [];
+    for (let x = 0; x < canvasSize; x++) {
+      for (let y = 0; y < canvasSize; y++) {
+        data.push(this.state[`${x}_${y}`]);
+      }
+    }
+    this.props.goAction(data);
+    if (this.props.clearOnGo) this.handleReset();
   }
   
   render() {
@@ -158,30 +160,19 @@ export default class Canvas extends React.Component{
       pixelsRows.push(<div key={x} style={s_row}>{ pixels }</div>);
     }
     
-    return <div 
-      style={s_main}
-      onMouseDown = {this.handleClick.bind(this, true)}
-      onMouseUp = {this.handleClick.bind(this, false)}
+    return <div style={s_main}
+      onMouseUp={this.handleClick.bind(this, false)}
+      onMouseDown={this.handleClick.bind(this, true)}
     >
-      <div 
-        style = {s_canvas} 
-        children = {pixelsRows}
-      />
-      <div style = {s_buttons}>
-        <div 
-          onClick = {this.handleReset.bind(this)}
-          className='button -blue'
-        >
-          Go!
+      <div style={s_canvas}  children={pixelsRows} />
+      <div style={s_buttons}>
+        <div className='button -red -rounded -canvas' onClick={this.handleReset.bind(this)}>
+          <span>Reset</span>
         </div>
-        <div 
-          onClick = {this.handleReset.bind(this)}
-          className='button -red'
-        >
-          Reset
+        <div className='button -blue -rounded -canvas' onClick={this.handleGo.bind(this)}>
+          <span>{ this.props.rightButtonCaption || 'Go!' }</span>
         </div>
       </div>
-      
     </div>;
   }
 }

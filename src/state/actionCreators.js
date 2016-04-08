@@ -4,6 +4,10 @@ import { logAction } from '../logger';
 // An action creator takes a plain object as input (params) 
 // and outputs a redux-style action ({ params, type });
 
+export const setMode = createSyncActionCreator('setMode');
+export const addData = createSyncActionCreator('addData');
+export const clearData = createSyncActionCreator('clearData');
+
 
 /* Utilities */
 
@@ -11,7 +15,7 @@ import { logAction } from '../logger';
 function createSyncActionCreator(intention) {
   const type = createTypeFromIntention(intention);
   
-  return params => {
+  return (params={}) => {
     logAction(intention, params);
     validateParams(params);
     
